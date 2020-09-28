@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tongchuang.general.modular.main.mapper.QuickResponseCodeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.tongchuang.general.modular.main.entity.QuickResponseCode">
+        <id column="id" property="id" />
+        <result column="image_file_path" property="imageFilePath" />
+        <result column="name" property="name" />
+        <result column="authorize_user_id" property="authorizeUserId" />
+        <result column="create_time" property="createTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, image_file_path, name, authorize_user_id, create_time
+    </sql>
+
+    <select id="quickResponseCodeList" resultType="com.tongchuang.general.modular.main.model.vo.QuickResponseCodeVO">
+        select
+        mqrc.id,
+        mqrc.number,
+        mqrc.`name`,
+        mqrc.image_file_path,
+        mu.phone as 'authorize_phone',
+        if(mqrcf1.file_count is null, 0, mqrcf1.file_count) as file_count,
+        if(mqrcf2.file_count_update_false is null, 0, mqrcf2.file_count_update_false) as file_count_update_false,
+        mqrc.create_time,
+        (select wesee_image_link from main_quick_response_code_file where quick_response_code_id = mqrc.id limit 0, 1) as cover_image_link
+        from main_quick_response_code as mqrc
+        left join main_user as mu on mqrc.authorize_user_id = mu.id
+        left join (
+            select quick_response_code_id, count(1) as file_count
+            from main_quick_response_code_file
+            GROUP BY quick_response_code_id
+            ) as mqrcf1 on mqrcf1.quick_response_code_id = mqrc.id
+        left join (
+            select qrcus.quick_response_code_id, count(1) as file_count_update_false
+            from (select * from main_quick_response_code_file where update_status = 0) as qrcus
+            where qrcus.update_status = 0
+            GROUP BY qrcus.quick_response_code_id
+        ) as mqrcf2 on mqrcf2.quick_response_code_id = mqrc.id
+        <where>
+            <if test="quickResponseCodeQueryDto.id != null">
+                and mqrc.id = #{quickResponseCodeQueryDto.id}
+            </if>
+            <if test="quickResponseCodeQueryDto.authorizeUserId != null">
+                and mu.id = #{quickResponseCodeQueryDto.authorizeUserId}
+            </if>
+            <if test="quickResponseCodeQueryDto.timeFrame != null">
+                <if test="quickResponseCodeQueryDto.timeFrame.startTime != null">
+                    and mqrc.create_time &gt;= #{quickResponseCodeQueryDto.startTime}
+                </if>
+                <if test="quickResponseCodeQueryDto.timeFrame.endTime != null">
+                    and mqrc.create_time &lt;= #{quickResponseCodeQueryDto.endTime}
+                </if>
+            </if>
+        </where>
+    </select>
+
+</mapper>

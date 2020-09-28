@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tongchuang.general.modular.main.mapper.UserMapper">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, image_file_path, name, authorize_user_id, create_time
+    </sql>
+
+    <select id="userList" resultType="com.tongchuang.general.modular.main.model.vo.UserVO">
+        select mu.id, mu.phone, mu.nickname, if(qrc.authorize_count is null, 0, qrc.authorize_count) as authorize_count, mu.create_time
+        from main_user as mu
+        left join (
+        select mqrc.authorize_user_id, count(mqrc.authorize_user_id) as authorize_count
+        from main_quick_response_code as mqrc
+        where mqrc.authorize_user_id &lt;&gt; 0
+        GROUP BY mqrc.authorize_user_id
+        ) as qrc on mu.id = qrc.authorize_user_id
+        <where>
+            <if test="userQuery.phone != null">
+                and mu.phone like CONCAT('%', #{userQuery.phone},'%')
+            </if>
+            <if test="userQuery.timeFrame != null">
+                <if test="userQuery.timeFrame.startTime != null">
+                    and mu.create_time &gt;= #{userQuery.startTime}
+                </if>
+                <if test="userQuery.timeFrame.endTime != null">
+                    and mu.create_time &lt;= #{userQuery.endTime}
+                </if>
+            </if>
+        </where>
+    </select>
+
+</mapper>

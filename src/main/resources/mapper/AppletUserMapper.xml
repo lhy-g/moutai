@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper
+	namespace="com.tongchuang.general.modular.applet.mapper.AppletUserMapper">
+
+	 <select id="getUserPrivateKey" resultType="java.lang.String">
+	 	SELECT p.private_key
+		FROM mt_user_key_pair p
+		WHERE p.user_id=#{userId}
+	 </select>
+	 <select id="getUserPublicKey" resultType="java.lang.String">
+	 	SELECT p.public_key
+		FROM mt_user_key_pair p
+		WHERE p.user_id=#{userId}
+	 </select>
+	 <insert id="addUserKeyPari">
+		INSERT INTO mt_user_key_pair
+		(user_id,public_key,private_key) VALUES
+		(#{userId},#{publicKey},#{privateKey}) ON DUPLICATE KEY
+		UPDATE public_key=#{publicKey},private_key=#{privateKey}	 
+	 </insert>
+
+	
+	<insert id="saveCompanyInfo" parameterType="com.tongchuang.general.modular.applet.dto.CompanyInfoDTO">
+		INSERT INTO mt_company_info 
+		(company_id,company_name,legal_person,uscc,license_img,`status`,type,boss_id,img) 
+		VALUES
+		(#{companyId},#{companyName},#{legalPerson},#{uscc},
+		#{licenseImg},#{status},#{type},#{bossId},#{img})
+		ON DUPLICATE KEY UPDATE company_name=#{companyName},legal_person=#{legalPerson},
+		uscc=#{uscc},img=#{img},license_img=#{licenseImg},type=#{type}
+	</insert>
+	
+	<insert id="addCompanyBossMember">
+		INSERT INTO mt_company_member
+		 (boss_id,member_id,`type`,`status`) VALUES
+		 (#{boss},#{unionId},#{type},'1')
+		 ON DUPLICATE KEY UPDATE updated_date = now()
+	</insert>
+	
+	<select id= "getCompanyIdByMemberId" resultType="java.lang.String">
+		SELECT i.company_id FROM mt_company_info i 
+		LEFT JOIN mt_company_member m ON m.boss_id=i.boss_id
+		WHERE m.member_id=#{memberId}
+	</select>
+	
+	<select id= "queryUserInfoByPhone" resultType="com.tongchuang.general.modular.applet.entity.UserInfo">
+		SELECT i.union_id unionId,i.nickname,i.phone,i.head_url headUrl,if(m.`type` is NULL,'0',m.`type`) type
+		FROM mt_user_info i
+		LEFT JOIN mt_company_member m ON m.member_id=i.user_id AND m.`status`='1'
+		WHERE i.union_id=#{unionId} LIMIT 1
+	</select>
+	
+	<insert id="updateUserInfo"  parameterType="com.tongchuang.general.modular.applet.entity.UserInfo">
+		INSERT INTO mt_user_info  
+		(union_id,user_id,nickname,phone,head_url,`type`) VALUES
+		(#{unionId},#{userId},#{nicename},#{phone},#{headUrl},#{type})
+		ON DUPLICATE KEY UPDATE updated_date = now()
+	</insert>
+	
+	<select id="searchCompany" resultType="java.util.Map">
+		SELECT i.boss_id bossId,i.company_name companyName,i.type companyType,
+				m.`type`,
+				if(m.`status` IS NULL,1,m.`status`)`status`
+		FROM mt_company_info i
+		LEFT JOIN mt_company_member m ON m.boss_id=i.boss_id AND m.member_id=#{userId}
+		WHERE  i.`status`='1'
+	</select>
+	
+	<select id="getUserType" resultType="java.util.Map">
+		SELECT m.`type` type ,d.value typeName
+		FROM mt_company_member m
+		LEFT JOIN mt_base_data d ON d.name=m.`type`
+		WHERE member_id = #{unionId}
+	</select>
+	
+	<select id="getBossIdByMemberId" resultType="java.lang.String">
+		SELECT  m.boss_id
+		FROM mt_company_member m
+		WHERE m.member_id=#{memberId} AND m.`status`='1'
+	</select>
+	
+	<insert id="addMemberApply">
+	 INSERT INTO mt_company_member
+	 (boss_id,member_id,`type`,`status`) VALUES
+	 (#{bossId},#{memberId},#{type},'0')
+	</insert>
+	<select id="queryBaseDataByType" resultType="java.util.Map" >
+		SELECT d.name type,d.value typeName
+		FROM mt_base_data d
+		WHERE d.`type`=#{type}
+	</select>
+	<select id="queryCompanyMember" resultType="java.util.Map">
+		SELECT 		m.member_id memberId,m.`type`,i.nickname,i.head_url headUrl,m.status
+		FROM 		mt_company_member m
+		LEFT JOIN	mt_user_info i ON m.member_id=i.user_id
+		WHERE 	 	m.boss_id = #{bossId}
+		AND 		m.status=#{status} ORDER BY m.created_date desc
+	</select>
+	
+	<update id="updateMemberStatusByUserId" >
+		UPDATE mt_company_member SET `status`=#{status}
+		WHERE boss_id=#{bossId} AND member_id=#{memberId}
+	</update>
+	
+	<select id="queryCompanyImgByBossId" resultType="java.lang.String" >
+		SELECT i.img 
+		FROM mt_company_info i 
+		WHERE i.boss_id=#{bossId}
+	</select>
+	
+	<select id="getBossUnionIdByMemberId" resultType="java.lang.String">
+		SELECT i.union_id
+		FROM mt_company_member m
+		LEFT JOIN mt_user_info i ON m.boss_id=i.user_id
+		WHERE m.member_id=#{memberId}  AND m.`status`='1'
+	</select>
+	
+	<select id="getcompanyInfoByBossId" resultType="com.tongchuang.general.modular.applet.dto.CompanyInfoDTO">
+		SELECT c.company_id companyId,c.company_name companyName,c.type,
+				c.legal_person legalPerson,c.uscc uscc,c.license_img licenseImg,c.img
+		FROM mt_company_info c
+		WHERE c.boss_id=#{bossId}
+	
+	
+	
+	</select>
+	
+</mapper>

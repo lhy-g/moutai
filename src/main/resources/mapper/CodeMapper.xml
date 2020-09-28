@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tongchuang.general.modular.applet.mapper.CodeMapper">
+
+	<select id="null" resultType="java.lang.String">
+		 
+	</select>
+	
+	<select id="queryCode" resultType="java.util.Map">
+		SELECT i.code_id c,t.sign s,i.number n
+		FROM mt_code_type t
+		LEFT JOIN mt_code_info i ON i.type_id=t.type_id
+		WHERE t.type_id=#{typeId} AND t.boss_id=#{userId}
+	</select>
+	 
+	<insert id="addCodeType" parameterType="com.tongchuang.general.modular.applet.dto.CodeTypeDTO">
+		INSERT INTO mt_code_type  
+		(type_id,type_name,boss_id,sign,img,status) VALUES
+		(#{typeId},#{typeName},#{bossId},#{sign},#{img},'1')
+	</insert>
+	 
+	<insert id="addCodeInfoByTypeId" parameterType="java.util.List">
+		INSERT INTO mt_code_info  
+		(code_id,type_id,number,user_id,sign,`status`) VALUES
+		<foreach collection="list" item="item" separator=",">
+				(#{item.codeId},#{item.typeId},#{item.number},#{item.userId},#{item.sign},'1')
+		</foreach>
+	</insert>
+	 
+	 <insert id="addCodeAddRecord" parameterType="com.tongchuang.general.modular.applet.dto.CodeAddRecordDTO">
+	 	INSERT INTO mt_code_add_record   
+	 	(type_id,user_id,start_num,end_num,time_stamp,sign) VALUES
+	 	(#{typeId},#{userId},#{startNum},#{endNum},#{timeStamp},#{sign})
+	 </insert>
+	 
+	<!--  <update id="updateCodeWeseeLink11" parameterType="java.util.List">
+		<if test="codeVideoDTO!=null">
+			<foreach collection="list" item="item" index="index" open=""
+				close="" separator=";">
+				update fto_qr_code_video
+				<set>
+					wesee_link=#{item.weseeLink},
+					image_url=#{item.imageUrl},
+					video_url=#{item.videoUrl}
+				</set>
+				<where>
+					code_id=#{item.codeId} and sort= #{item.sort}
+				</where>
+			</foreach>
+		</if>
+	</update>
+	-->
+	
+	 
+
+	<select id="queryCodeVideoUrl" resultType="java.lang.String">
+		SELECT v.link
+		FROM mt_code_video v
+		WHERE v.code_id=#{codeId} 
+		order by v.sort
+	</select>
+	
+	<select id="queryCodeVideoLink" resultType="java.lang.String">
+		SELECT c.link
+		FROM mt_code_info i 
+		LEFT JOIN mt_code_type t ON t.type_id=i.type_id
+		LEFT JOIN mt_code_video_company c ON c.type_id=t.type_id AND c.boss_id=t.boss_id
+		WHERE i.code_id=#{codeId} and t.boss_id=#{bossId}
+			ORDER BY c.sort
+	</select>
+	
+	<select id="querySaleCodeVideoLink" resultType="java.lang.String">
+		SELECT v.link 
+		FROM mt_code_info i
+		LEFT JOIN mt_code_sell_company c ON i.code_id=c.code_id 
+		LEFT JOIN mt_code_video_company v ON v.type_id=c.type_id AND c.boss_id=v.boss_id
+		WHERE i.code_id=#{codeId} and v.boss_id=#{bossId}
+		ORDER BY v.sort
+	</select>
+	
+	<insert id="addCodeBrowse" >
+		INSERT INTO  mt_code_browse 
+		(code_id,union_id,`status`) VALUES
+		(#{codeId},#{unionId},'1')
+		ON DUPLICATE KEY UPDATE updated_date=now()
+	</insert>
+	 
+	<select id="getCodeUserIdByCodeId" resultType="java.lang.String">
+		SELECT i.user_id
+		FROM mt_code_sell_user i
+		WHERE i.code_id = #{codeId}
+	</select>
+
+	<insert id="addCodeSellUser"  parameterType="com.tongchuang.general.modular.applet.dto.CodeInfoDTO">
+		 INSERT INTO mt_code_sell_user 
+		 (code_id,type_id,user_id,sign,`status`) values
+		 (#{codeId},#{typeId},#{userId},#{sign},'1')
+	</insert>
+	
+	<update id="updateCodeUserId">
+		UPDATE mt_code_sell_user u 
+		SET u.user_id=#{userId}
+		WHERE u.code_id=#{codeId}
+	</update>
+	
+	<update id="updateCodeCompanyId"  >
+		UPDATE mt_code_info i
+		INNER JOIN (
+			SELECT ci.code_id
+			FROM mt_code_info ci
+			WHERE  ci.code_id>=#{start} AND ci.code_id&lt;=#{end} ) t 
+		ON i.type_id=#{typeId} AND i.status='1'
+		AND i.code_id=t.code_id 
+		SET i.company_id=#{companyId},i.status='2'
+	</update>
+	
+	<update id="updateCodeCompanyIdByCompany"  >
+		UPDATE mt_code_sell_company c
+		INNER JOIN (
+			SELECT s.code_id
+			FROM mt_code_sell_company s
+			WHERE s.boss_id=#{sellBossId} AND s.code_id>=#{start} AND s.status='1' limit #{count})t 
+		ON c.code_id=t.code_id SET c.boss_id=#{bossId}
+	</update>
+	
+	<update id="addCompanySellCodesToCompany"  >
+		UPDATE mt_code_sell_company c
+		INNER JOIN (
+			SELECT s.code_id
+			FROM mt_code_sell_company s
+			WHERE s.boss_id=#{sellBossId} AND s.code_id>=#{start}  AND s.code_id&lt;=#{end} AND s.status='1')t 
+		ON c.code_id=t.code_id SET c.boss_id=#{bossId}
+	<!--  	UPDATE mt_code_info i
+		INNER JOIN (
+			SELECT ci.code_id
+			FROM mt_code_info ci
+			WHERE ci.company_id = #{companyId} and ci.code_id>=#{start} ) t 
+		ON  i.type_id = #{typeId} 
+		AND i.code_id=t.code_id 
+		SET i.company_id=#{sellCompanyId}-->
+	</update>
+	
+	<select id = "queryCodeType" resultType="java.util.Map">
+		SELECT t.img,t.type_id typeId,t.type_name typeName,
+				COUNT(i.code_id) count,
+				if(MIN(i.code_id) IS NULL,"空",MIN(i.code_id)) min,
+				if(MAX(i.code_id) IS NULL,"空",MAX(i.code_id)) max
+				<!--  MIN(i.code_id) min,MAX(i.code_id) max-->
+		FROM mt_code_type t 
+		LEFT JOIN mt_code_info i ON t.type_id=i.type_id AND i.`status`=1
+		WHERE t.boss_id= #{userId}
+		GROUP BY t.type_id
+	</select>
+	
+	<select id = "queryCodeTypeList" resultType="java.util.Map">
+		SELECT 	t.type_id typeId,t.img,t.type_name typeName,
+		COUNT(c.code_id) count,MIN(c.code_id) min,MAX(c.code_id) max
+		FROM mt_code_sell_company c
+		LEFT JOIN mt_code_type t ON t.type_id=c.type_id
+		WHERE c.boss_id=#{bossId} and c.status='1'
+		GROUP BY t.type_id
+	<!--  	SELECT t.img,t.type_id typeId,t.type_name typeName,
+				COUNT(i.code_id) count,MIN(i.code_id) min,MAX(i.code_id) max
+		FROM mt_code_type t 
+		LEFT JOIN mt_code_info i ON t.type_id=i.type_id    
+		WHERE i.company_id=#{companyId}
+		GROUP BY t.type_id-->
+	</select>
+	
+	<select id = "queryMyCode" resultType="java.util.Map">
+		SELECT i.code_id codeId,t.type_name typeName,t.img img,date(i.updated_date) date
+		FROM mt_code_sell_user i
+		LEFT JOIN mt_code_type t ON i.type_id=t.type_id
+		WHERE i.user_id=#{userId} 
+		ORDER BY i.updated_date desc
+	</select>
+	
+	<select id = "updateCodeWeseeLink" parameterType="com.tongchuang.general.modular.applet.dto.CodeVideoDTO">
+		INSERT INTO mt_code_video 
+ 		(code_id,link,sort,`status`) VALUES
+		(#{codeId},#{weseeLink},#{sort},'1')ON DUPLICATE KEY UPDATE link=#{weseeLink}
+	</select>
+	
+	<select id = "queryAllCodeIdByCompanyId" resultType="java.lang.String" >
+		SELECT i.code_id
+		FROM mt_code_info i
+		WHERE i.company_id=#{companyId} AND i.type_id=#{typeId}	
+	</select>
+	
+	<insert id="addBatchCodeLink" parameterType="java.util.List">
+		insert into mt_code_video (code_id,sort,link,status)values
+		<foreach collection="list" item="item" separator=",">
+			(#{item.codeId},#{item.sort},#{item.weseeLink},'1')
+		</foreach>
+	</insert>
+	
+	<update id = "updateCodeWeseeLink2">
+		UPDATE mt_code_video v
+		INNER JOIN (
+			SELECT ci.code_id
+			FROM mt_code_info ci
+			WHERE ci.company_id=#{companyId} AND ci.type_id=#{typeId} AND ci.status ='2') t
+		ON v.code_id=t.code_id
+		SET v.link=#{link},v.sort=#{sort}
+	</update>
+	<select id = "getCodeMaxNumber" resultType="java.lang.Integer" >
+		SELECT MAX(i.number) 
+		FROM mt_code_info i 
+		WHERE i.type_id=#{type}			
+	</select>
+	
+	<select id = "queryCodeIdFromStartToEnd" resultType="java.util.Map">
+		SELECT t.boss_id b,i.user_id a, i.code_id c,LEFT(i.sign,64) s
+		FROM mt_code_info i
+		LEFT JOIN mt_code_type t ON t.type_id=i.type_id
+		WHERE i.type_id=#{typeId} <!--  AND i.`status`='1'  and i.code_id&lt;=#{end}  -->
+		AND i.code_id>=#{start} limit #{count}
+	</select>
+	
+	<select id = "queryCodeWeseeLink" resultType="java.util.Map" >
+		SELECT v.link,v.sort 
+		FROM mt_code_video v 
+		WHERE  v.code_id=#{typeId}
+	</select>
+	
+	<select id="queryCodeStatus"  resultType="java.lang.String">
+		SELECT i.`status`
+		FROM mt_code_info i
+		WHERE  i.code_id=#{codeId}
+	</select>
+	
+	<select id="queryMyCodeBrowse" resultType="java.util.Map">
+		SELECT b.code_id codeId,t.type_name typeName,t.img,DATE(b.created_date) date
+		FROM mt_code_browse b
+		LEFT JOIN mt_code_info i ON i.code_id=b.code_id
+		LEFT JOIN mt_code_type t ON t.type_id=i.type_id
+		WHERE b.union_id=#{unionId} ORDER BY b.updated_date DESC
+	</select>
+	
+	<insert id="updateCodeCompanyLink">
+		INSERT INTO mt_code_video_company   
+		(video_id,boss_id,type_id,link,sort,status)
+		VALUES(#{videoId}, #{bossId},#{typeId},#{link},#{sort},#{status}) 
+		ON DUPLICATE KEY UPDATE link=#{link},sort=#{sort},status=#{status}
+	</insert>
+	
+	<insert id="updateCodeLink">
+		INSERT INTO mt_code_video  
+		(video_id,code_id,link,sort,status)
+		VALUES( #{videoId},#{codeId},#{link},#{sort},#{status}) 
+		ON DUPLICATE KEY UPDATE link=#{link},sort=#{sort},status=#{status}
+	</insert>
+	
+	<select id="queryCompanyCodeLink" resultType="java.util.LinkedHashMap">
+		SELECT   c.video_id videoId,c.link,c.sort,c.status
+		  FROM   mt_code_video_company c
+		 WHERE   c.type_id=#{typeId} AND c.boss_id=#{bossId}
+		ORDER BY c.sort
+	</select>
+	
+	 <select id="queryMyCodeLink" resultType="java.util.Map">
+	 	SELECT v.video_id videoId,v.link,v.sort,v.status 
+		FROM mt_code_video v
+		WHERE v.code_id=#{codeId}
+		ORDER BY sort
+	 </select>
+	 <insert id="addCompanyCodeLinkFromSell">
+	 	INSERT INTO mt_code_video_company 
+	 	(type_id,boss_id,link,sort,status) 
+		SELECT #{typeId},#{bossId},link,sort,status
+		FROM mt_code_video_company c
+		WHERE c.type_id=#{typeId} AND c.boss_id=#{sellBossId}
+	 </insert>
+	 
+	 <insert id="addMyCodeLinkFromSell">
+	 	INSERT INTO mt_code_video 
+	 	(code_id,link,sort,status) 
+		SELECT  #{codeId},link,sort,status
+		  FROM   mt_code_video_company c
+		 WHERE   c.boss_id=#{bossId} 
+		   AND   c.type_id=#{typeId}
+		<!--  
+	 	INSERT INTO mt_code_video 
+	 	(code_id,link,sort) 
+		SELECT #{codeId},link,sort
+		FROM mt_code_video_company c
+		WHERE c.company_id=#{companyId} 
+		AND c.type_id=(
+				SELECT type_id 
+				FROM mt_code_info i 
+				WHERE i.code_id=#{codeId})-->
+	 </insert>
+	 
+	 <select id="queryCodeIdListFromStartLimitCount" resultType="java.util.Map">
+		SELECT ci.code_id c,ci.sign s,ci.user_id u
+		  FROM mt_code_info ci
+		 WHERE ci.code_id>=#{start}  
+		   AND ci.status='1' AND ci.type_id=#{typeId}
+		 limit #{count}
+	</select>
+	 
+	<select id="queryCodeIdListFromStartToEnd" resultType="java.util.Map">
+		SELECT ci.code_id c,ci.sign s,ci.user_id u
+		  FROM mt_code_info ci
+		 WHERE ci.code_id>=#{start}  AND ci.code_id &lt;=#{end} 
+		   AND ci.status='1' AND ci.type_id=#{typeId}
+		<!--  SELECT ci.code_id
+		  FROM mt_code_info ci
+		 WHERE ci.code_id>=#{start} AND ci.code_id&lt;=#{end} 
+		   AND ci.status='1' AND ci.type_id=#{typeId}-->
+	</select>
+	
+	<update id="updateCodeCompanyIdByCodeList" parameterType="java.util.List">
+		INSERT INTO mt_code_sell_company  
+		(type_id,code_id,boss_id,sign,`status`) VALUES
+		<foreach collection="list" item="item" separator=",">
+			(#{item.typeId},#{item.codeId},#{item.bossId},#{item.sign},'1')
+		</foreach>
+	</update>
+	
+	 
+	<update id="updateCodeStatus" parameterType="java.util.List">
+		UPDATE mt_code_info i
+		SET i.status='2'
+		where i.code_id in
+		<foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+      		#{item}
+    	</foreach>
+	</update>
+	
+	<select id="getCodeBossIdAndTypeIdByCodeId"  resultType="java.util.Map">
+		SELECT c.type_id t,c.boss_id b
+		FROM mt_code_sell_company c
+		WHERE c.code_id=#{codeId} and status='1'
+	</select>
+	<update id="updateCodeStatusByCodeId" >
+		UPDATE mt_code_info i
+		   SET i.status='4'
+		 where i.code_id =#{codeId}
+	</update>
+	<update id="updateCodeSellCompanyStatus">
+		UPDATE mt_code_sell_company 
+		SET status='2'
+		WHERE code_id=#{codeId}
+	</update>
+	
+	<select id="getTypeBossIdByTypeId" resultType="java.lang.String">
+		SELECT boss_id 
+		FROM mt_code_type 
+		WHERE type_id=#{typeId}
+	</select>
+	
+	<insert id = "addCodeBatchSellRecord">
+		INSERT INTO mt_code_record_company 
+		(type_id,count,`start`,seller_id,user_id) VALUES
+		(#{typeId},#{count},#{start},#{sellerId},#{bossId})
+	</insert>
+	
+	<select id="queryCodeVodeoBrowseList" resultType="java.util.Map">
+		SELECT b.code_id,COUNT(*) count
+		FROM mt_code_browse b
+		LEFT JOIN mt_code_sell_company c ON c.code_id=b.code_id
+		WHERE c.boss_id =#{bossId}
+		GROUP BY b.code_id
+		ORDER BY count	
+	</select>
+	
+	<insert id="excel" parameterType="java.util.List">
+		INSERT INTO mt_z_exl 
+		(url,`file`) VALUES
+		<foreach collection="list" item="item" separator=",">
+			(#{item.u},#{item.p})
+		</foreach>
+	</insert>
+	
+	<select id = "queryCountFromStartToEnd" resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM mt_code_info i
+		LEFT JOIN mt_code_type t ON i.type_id=t.type_id 
+		WHERE i.type_id = #{typeId} AND i.code_id BETWEEN #{start} AND #{end} AND i.status='1' AND t.boss_id=#{bossId}
+	</select>
+	
+	<select id = "queryCountFromStartToEnd2" resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM mt_code_sell_company
+		WHERE type_id = #{typeId} AND code_id BETWEEN #{start} AND #{end} AND status='1' AND boss_id=#{bossId}
+	</select>
+	
+	
+	<select id ="queryMyCodeTranRecord" resultType="java.util.Map">
+		SELECT c.code_id codeId,t.type_name typeName,t.img,
+				date(c.created_date) date,
+				c.seller_id s,u.nickname sellName,
+				c.user_id u,n.nickname  userName
+		FROM mt_code_record_user c
+		LEFT JOIN mt_code_info i ON i.code_id=c.code_id
+		LEFT JOIN mt_code_type t ON t.type_id=i.type_id
+		LEFT JOIN mt_user_info u ON c.seller_id=u.user_id
+		LEFT JOIN mt_user_info n ON n.user_id=c.user_id
+		 <choose>
+			<when test="type == 2">
+				WHERE c.user_id=#{userId}
+			</when>
+			<when test="type == 3">
+				WHERE c.seller_id=#{userId}
+			</when>
+			<otherwise>
+				WHERE c.seller_id=#{userId} OR c.user_id=#{userId}
+			</otherwise>
+		</choose>
+		ORDER BY c.created_date
+	</select>
+	
+	<insert id="addCodeTranRecord">
+		INSERT INTO mt_code_record_user 
+		(code_id,seller_id,user_id) VALUES
+		(#{codeId},#{sellerId},#{userId})
+	</insert>
+	
+	<select id="queryCodeVidoCountByCodeId" resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM mt_code_video
+		WHERE code_id=#{codeId}
+	</select>
+	
+	<select id="queryCodeVidoSortList" resultType="java.lang.Integer">
+		SELECT v.sort
+		FROM mt_code_video v
+		WHERE code_id=#{codeId}
+		ORDER BY v.sort
+	</select>
+	
+	<select id="queryCompanyLinkCount" resultType="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM mt_code_video_company c
+		WHERE c.type_id=#{typeId} AND c.boss_id=#{bossId}	
+	</select>
+	<select id="getCodeBossIdByCodeId" resultType="java.lang.String">
+		SELECT t.boss_id
+		FROM mt_code_info c
+		LEFT JOIN mt_code_type t ON t.type_id=c.type_id
+		WHERE c.code_id=#{codeId}
+	</select>
+	<select id="getCompanyCodeBossIdByCodeId" resultType="java.lang.String">
+		SELECT c.boss_id
+		FROM mt_code_sell_company c
+		WHERE c.code_id=#{codeId}
+	</select>
+	
+	<update id="transferCompanyCodeType">
+		UPDATE mt_code_sell_company c 
+		SET c.type_id=#{typeId}
+		WHERE c.boss_id=#{bossId} and c.code_id BETWEEN #{start} AND #{end} 
+	</update>
+	 
+	 <update id="updateCodeInfoType">
+		UPDATE mt_code_info i SET i.type_id=#{typeId}
+		WHERE i.code_id IN (
+		SELECT c.code_id
+		FROM mt_code_sell_company c
+		WHERE c.boss_id=#{bossId} AND c.code_id BETWEEN #{start} AND #{end})
+	 </update>
+	 
+	 <select id="queryCompanyCodesType" resultType="java.util.Map" >
+		SELECT t.type_id typeId,t.type_name typeName
+		FROM mt_code_type t
+		WHERE t.boss_id=#{bossId}	 
+	 </select>
+	 
+	 <insert id="addtransferCompanyCodeTypeLink">
+		 INSERT INTO mt_code_video_company 
+		(type_id,boss_id,link,sort,`status`)
+		SELECT #{typeId},boss_id,link,sort,`status`
+		FROM mt_code_video_company v
+		WHERE v.type_id=#{oldTypeId} and v.boss_id=#{bossId}
+	 </insert>
+	 
+	 <select id="queryCompanyCodeVideoLinkCount" resultType="java.lang.Integer">
+	 	SELECT COUNT(*) 
+	 	FROM mt_code_video_company 
+	 	WHERE type_id=#{typeId}
+	 </select>
+</mapper>
