@@ -640,44 +640,44 @@ public class CodeController {
 		return R.success().setData(null);
 	}
 	
-	@ApiOperation("生成excel文件")
-	@ApiOperationSupport(order = 502)
-	@RequestMapping(value = "/download_code_4",method = RequestMethod.GET)
-	public R<Void> downCodeType4(
-			@ApiParam(value = "权益类型Id", required = true) @RequestParam String typeId,
-			@ApiParam(value = "权益类型名称", required = true) @RequestParam String typeName,
-			@ApiParam(value = "开始", required = true) @RequestParam String start,
-			@ApiParam(value = "数量", required = true) @RequestParam Integer  count,
-			HttpServletResponse response) {
-		ServletOutputStream out = null;
-		ExcelWriter writer = ExcelUtil.getWriter(true);
-		try {
-			List<Map<String, Object>> list = codeService.queryCodeIdFromStartToEnd(start, count, typeId);
-			List<Map<String, Object>> codeDataList = new LinkedList<Map<String,Object>>();
-			Map<String, Object>  codeData = null;
-			Integer num=0;
-			for (Map<String, Object> map : list) {
-				codeData = new LinkedHashMap<String, Object>();
-				codeData.put("序号", ++num);
-				codeData.put("权益编号", map.get("c")); //+ ".jpg");
-				codeData.put("二维码内容", CodeConstant.URL + map);
-				codeDataList.add(codeData);
-			}
-			writer.write(codeDataList, true);
-			response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8"); 
-			response.setHeader("Content-Disposition","attachment;filename="+MyDateUtils.getTimeStamp()+".xlsx"); 
-			out=response.getOutputStream(); 
-			writer.flush(out, true);
-			return null;
-		} catch (Exception e) {
-			return R.fail().setMsg(e.getMessage());
-		}finally {
-			writer.close();
-			if(null!=out) {
-				IoUtil.close(out);
-			}
-		}
-	}
+	
+////	@ApiOperationSupport(order = 502)
+//	@RequestMapping(value = "/download_code_4",method = RequestMethod.GET)
+//	public R<Void> downCodeType4(
+//			@ApiParam(value = "权益类型Id", required = true) @RequestParam String typeId,
+//			@ApiParam(value = "权益类型名称", required = true) @RequestParam String typeName,
+//			@ApiParam(value = "开始", required = true) @RequestParam String start,
+//			@ApiParam(value = "数量", required = true) @RequestParam Integer  count,
+//			HttpServletResponse response) {
+//		ServletOutputStream out = null;
+//		ExcelWriter writer = ExcelUtil.getWriter(true);
+//		try {
+//			List<Map<String, Object>> list = codeService.queryCodeIdFromStartToEnd(start, count, typeId);
+//			List<Map<String, Object>> codeDataList = new LinkedList<Map<String,Object>>();
+//			Map<String, Object>  codeData = null;
+//			Integer num=0;
+//			for (Map<String, Object> map : list) {
+//				codeData = new LinkedHashMap<String, Object>();
+//				codeData.put("序号", ++num);
+//				codeData.put("权益编号", map.get("c")); //+ ".jpg");
+//				codeData.put("二维码内容", CodeConstant.URL + map);
+//				codeDataList.add(codeData);
+//			}
+//			writer.write(codeDataList, true);
+//			response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8"); 
+//			response.setHeader("Content-Disposition","attachment;filename="+MyDateUtils.getTimeStamp()+".xlsx"); 
+//			out=response.getOutputStream(); 
+//			writer.flush(out, true);
+//			return null;
+//		} catch (Exception e) {
+//			return R.fail().setMsg(e.getMessage());
+//		}finally {
+//			writer.close();
+//			if(null!=out) {
+//				IoUtil.close(out);
+//			}
+//		}
+//	}
 	
 //	@ApiOperation("消费公司:新增二维码视频链接")
 //	@ApiOperationSupport(order = 203)

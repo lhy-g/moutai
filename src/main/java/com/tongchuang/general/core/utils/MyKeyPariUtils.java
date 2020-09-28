@@ -165,12 +165,12 @@ public class MyKeyPariUtils {
 			return sign;
 	}
 
-	public static void main(String[] args) throws Exception {
-		String pr = "MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBALVgh38LC7olvkjU/boTplCBb6mCu1dNNP48tJTXiEB7gx+/P9j6Xi2CK7emRiFLZ750fB0h23tHrDgHnoqSrR+J6sb+dv7RSPumDr+Dlkb0FCuz+fJHf1DsugoZApzlfcFQ1giaH7DPJtqLDocuBu26cabC8Z23PBPuoSmRHTw1AgMBAAECgYEAnfmCanO7dhlTn+nrSDu/GtVx5SlZdJNpeZp0CkOjh85MCcWwnZKLnoWHAEDRSkR8CpU4WMNZgAmQBYkVXEqef6cIstXWIVGHLCmkDNa/5WA0tNxg792GpWPnYusuGA+P0EZ2TzH3/jnmeK8WtMM894prgyRDtJuAO8/cKUHeig0CQQDhZITX+OqmQofOHmm7nh1f3g0DNuwN+pNRo9vOqaiQWmclyjYH3iWJP3abf5TqCZfusIhBradte/Ujkiwo04OLAkEAzgHdttC2J1GKEj/75F+HXsmWCoJXt4b2Bdc0jZ/uP4fXMhkmCaanepIk5OaPBBhW5b+UDdJOtMFdnLUr0Qc3PwJBAJQsTNjenwQmALmUbNYWoCECDXPri0u1S1wEaOB30IT1qZHCWbraY7rSqdqYCQHCxMr56tmim8ryDroPwlAknPkCQQCDVu87Ge+4O6Uyo3Z+EGWnChDN3HH+QV5jNOR9ksR73qhVeXEl4AmQ/NHm2hO+QaJNUgobkcS6OznqqhsoZlhTAkAkeJgCL6lHqqSvucXK78GbpQiXyMWb/vpB+Odjt7CcGkVxisSe9I75oRV1tm72yhF9xdLduAGhMj7o0RIpEWQ9";
-		
-		System.out.println(sign("1",getPrivateKey(pr)));
-		System.out.println("签字OK");
-	}
+//	public static void main(String[] args) throws Exception {
+//		String pr = "MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBALVgh38LC7olvkjU/boTplCBb6mCu1dNNP48tJTXiEB7gx+/P9j6Xi2CK7emRiFLZ750fB0h23tHrDgHnoqSrR+J6sb+dv7RSPumDr+Dlkb0FCuz+fJHf1DsugoZApzlfcFQ1giaH7DPJtqLDocuBu26cabC8Z23PBPuoSmRHTw1AgMBAAECgYEAnfmCanO7dhlTn+nrSDu/GtVx5SlZdJNpeZp0CkOjh85MCcWwnZKLnoWHAEDRSkR8CpU4WMNZgAmQBYkVXEqef6cIstXWIVGHLCmkDNa/5WA0tNxg792GpWPnYusuGA+P0EZ2TzH3/jnmeK8WtMM894prgyRDtJuAO8/cKUHeig0CQQDhZITX+OqmQofOHmm7nh1f3g0DNuwN+pNRo9vOqaiQWmclyjYH3iWJP3abf5TqCZfusIhBradte/Ujkiwo04OLAkEAzgHdttC2J1GKEj/75F+HXsmWCoJXt4b2Bdc0jZ/uP4fXMhkmCaanepIk5OaPBBhW5b+UDdJOtMFdnLUr0Qc3PwJBAJQsTNjenwQmALmUbNYWoCECDXPri0u1S1wEaOB30IT1qZHCWbraY7rSqdqYCQHCxMr56tmim8ryDroPwlAknPkCQQCDVu87Ge+4O6Uyo3Z+EGWnChDN3HH+QV5jNOR9ksR73qhVeXEl4AmQ/NHm2hO+QaJNUgobkcS6OznqqhsoZlhTAkAkeJgCL6lHqqSvucXK78GbpQiXyMWb/vpB+Odjt7CcGkVxisSe9I75oRV1tm72yhF9xdLduAGhMj7o0RIpEWQ9";
+//		
+//		System.out.println(sign("1",getPrivateKey(pr)));
+//		System.out.println("签字OK");
+//	}
 	
 	/**
 	 * 验签
@@ -193,32 +193,32 @@ public class MyKeyPariUtils {
 		return signature.verify(Base64.decodeBase64(sign.getBytes()));
 	}
 	
-//	public static void main(String[] args) {
-//        try {
-//            // 生成密钥对
-//            KeyPair keyPair = getKeyPair();
-//            String privateKey = new String(Base64.encodeBase64(keyPair.getPrivate().getEncoded()));
-//            String publicKey = new String(Base64.encodeBase64(keyPair.getPublic().getEncoded()));
-//            System.out.println("私钥:" + privateKey);
-//            System.out.println("公钥:" + publicKey);
-//            // RSA加密
-//            String data = "待加密的文字内容";
-//            System.out.println("加密前内容:" + data);
-//            String encryptData = encrypt(data, getPublicKey(publicKey));
-//            System.out.println("加密后内容:" + encryptData);
-//            // RSA解密
-//            String decryptData = decrypt(encryptData, getPrivateKey(privateKey));
-//            System.out.println("解密后内容:" + decryptData);
-//
-//            // RSA签名
-//            String sign = sign(data, getPrivateKey(privateKey));
-//            // RSA验签
-//            boolean result = verify(data, getPublicKey(publicKey), sign);
-//            System.out.print("验签结果:" + result);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            System.out.print("加解密异常");
-//        }
-//    }
+	public static void main(String[] args) {
+        try {
+            // 生成密钥对
+            KeyPair keyPair = getKeyPair();
+            String privateKey = new String(Base64.encodeBase64(keyPair.getPrivate().getEncoded()));
+            String publicKey = new String(Base64.encodeBase64(keyPair.getPublic().getEncoded()));
+            System.out.println("私钥:" + privateKey);
+            System.out.println("公钥:" + publicKey);
+            // RSA加密encrypt
+            String data = "待加密的文字内容";
+            System.out.println("加密前内容:" + data);
+            String encryptData = encrypt(data, getPublicKey(publicKey));
+            System.out.println("加密后内容:" + encryptData);
+            // RSA解密decrypt
+            String decryptData = decrypt(encryptData, getPrivateKey(privateKey));
+            System.out.println("解密后内容:" + decryptData);
+
+            // RSA签名sign
+            String sign = sign(data, getPrivateKey(privateKey));
+            // RSA验签
+            boolean result = verify(data, getPublicKey(publicKey), sign);
+            System.out.print("验签结果:" + result);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.print("加解密异常");
+        }
+    }
 
 }
